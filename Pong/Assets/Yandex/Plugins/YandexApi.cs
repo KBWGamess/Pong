@@ -129,6 +129,8 @@ public class YandexApi : MonoBehaviour
 
     #endregion
 
+    private static bool initIsFailed = false;
+
     /// <summary>
     /// Инициализирует работу с api
     /// </summary>
@@ -138,7 +140,15 @@ public class YandexApi : MonoBehaviour
     {
         InitSuccess = success;
         InitFail = fail;
-        _Init();
+        try
+        {
+            _Init();
+        }
+        catch
+        {
+            initIsFailed = true;
+            Debug.LogError("Не удалось инициализировать YandexApi");
+        }
     }
 
     /// <summary>
@@ -146,6 +156,11 @@ public class YandexApi : MonoBehaviour
     /// </summary>
     public static void ShowFullscreenAdv(Action success = null, Action<string> fail = null)
     {
+        if (initIsFailed)
+        {
+            ShowFullscreenAdvSuccess.Invoke();
+            return;
+        }
         ShowFullscreenAdvSuccess = success;
         ShowFullscreenAdvFail = fail;
         _ShowFullscreenAdv();
@@ -158,6 +173,11 @@ public class YandexApi : MonoBehaviour
     /// <param name="fail"></param>
     public static void ShowRewardedVideo(Action<RewardedVideoResult> success = null, Action<string> fail = null)
     {
+        if (initIsFailed)
+        {
+            ShowRewardedVideoSuccess.Invoke(new RewardedVideoResult { action = RewardedVideoActionEnum.Rewarded });
+            return;
+        }
         ShowRewardedVideoSuccess = success;
         ShowRewardedVideoFail = fail;
         _ShowRewardedVideo();
@@ -169,6 +189,11 @@ public class YandexApi : MonoBehaviour
     /// <param name="callback"></param>
     public static void GetPlayer(Action success = null, Action<string> fail = null)
     {
+        if (initIsFailed)
+        {
+            GetPlayerSuccess.Invoke();
+            return;
+        }
         GetPlayerSuccess = success;
         GetPlayerFail = fail;
         _GetPlayer();
@@ -178,13 +203,34 @@ public class YandexApi : MonoBehaviour
     /// Возвращает информацию об игроке
     /// </summary>
     /// <returns>Информация об игроке</returns>
-    public static CallbackResult<PlayerInfo> GetPlayerInfo() => JsonUtility.FromJson<CallbackResult<PlayerInfo>>(_GetPlayerInfo());
+    public static CallbackResult<PlayerInfo> GetPlayerInfo()
+    {
+        if (initIsFailed)
+        {
+            return new CallbackResult<PlayerInfo>
+            {
+                isSuccessfull = true,
+                data = new PlayerInfo
+                {
+                    id = "testId",
+                    name = "testName",
+                    photoUrls = new string[3] { "testPhotoUrlSmall", "testPhotoUrlMed", "testPhotoUrlLarge" }
+                }
+            };
+        }
+        return JsonUtility.FromJson<CallbackResult<PlayerInfo>>(_GetPlayerInfo());
+    }
 
     /// <summary>
     /// Запрашивает данные с сервера Яндекса
     /// </summary>
     public static void GetData(Action<PlayerData> success = null, Action<string> fail = null)
     {
+        if (initIsFailed)
+        {
+            GetDataSuccess.Invoke(new PlayerData());
+            return;
+        }
         GetDataSuccess = success;
         GetDataFail = fail;
         _GetData();
@@ -194,15 +240,34 @@ public class YandexApi : MonoBehaviour
     /// Сохраняет данные на сервер Яндекса
     /// </summary>
     /// <param name="data">данные для сохранения</param>
-    public static void SetData(PlayerData data) => _SetData(JsonUtility.ToJson(data));
+    public static void SetData(PlayerData data)
+    {
+        if (initIsFailed)
+        {
+            SetDataSuccess.Invoke();
+            return;
+        }
+        _SetData(JsonUtility.ToJson(data));
+    }
 
     /// <summary>
     /// Отправляет событие закрытия приложения
     /// </summary>
-    public static void SendExitEvent() => _SendExitEvent();
+    public static void SendExitEvent()
+    {
+        if (initIsFailed)
+        {
+            return;
+        }
+        _SendExitEvent();
+    }
 
     public static DeviceTypeEnum DeviceInfo()
     {
+        if (initIsFailed)
+        {
+            return DeviceTypeEnum.Desktop;
+        }
         var res = (DeviceTypeEnum)_DeviceInfo();
         return res;
     }
