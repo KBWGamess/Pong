@@ -1,11 +1,9 @@
-using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class Player : Paddle
 {
     private Vector2 dir;
-    private Vector2 jopa;
+    public Camera cam;
 
     //public Button up;
     //public Button down;
@@ -21,17 +19,34 @@ public class Player : Paddle
     private void OnUp()
     {
         dir += Vector2.up;
-        Debug.Log(dir);       
+        Debug.Log(dir);
     }
 
     private void OnDown()
     {
         dir += Vector2.down;
-        Debug.Log(dir);  
+        Debug.Log(dir);
     }
 
     private void Update()
     {
+        #region Управление одним пальцем (Выкл)
+        if (false)
+        {
+            dir += Input.GetMouseButton(0) ? Vector2.up : Vector2.down;
+        }
+        #endregion
+        #region Управление касанием
+        if (Input.GetMouseButton(0))
+        {
+            dir += Input.mousePosition.y < (Screen.height / 2) ? Vector2.down : Vector2.up;
+        }
+        if (Input.GetMouseButtonUp(0))
+        {
+            dir = Vector2.zero;
+        }
+        #endregion
+
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
             dir += Vector2.up;
         else if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
@@ -43,7 +58,7 @@ public class Player : Paddle
             dir -= Vector2.down;
 
         dir = Vector2.ClampMagnitude(dir, 1f);
-    } 
+    }
 
     private void FixedUpdate()
     {
