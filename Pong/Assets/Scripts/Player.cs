@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class Player : Paddle
 {
     private Vector2 dir;
+    private Vector2 jopa;
 
     //public Button up;
     //public Button down;
